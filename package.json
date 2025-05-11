@@ -3,10 +3,18 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint ./src/**/*.ts"
+    "lint": "eslint ./src/**/*.ts",
+    "lint:fix": "eslint ./src/**/*.ts --fix",
+    "format": "prettier --write ./src/**/*.ts",
+    "build": "tsc",
+    "build:webpack": "webpack",
+    "start": "node dist/index.js",
+    "start:prod": "npm run build && cross-env NODE_ENV=production node dist/index.js",
+    "start:dev": "cross-env NODE_ENV=development nodemon --watch src --ext ts,json --exec \"node --no-warnings --loader ts-node/esm src/index.ts\"",
+    "test:tsnode": "node --no-warnings --loader ts-node/esm src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -22,16 +30,26 @@
   "devDependencies": {
     "@eslint/js": "^9.26.0",
     "@types/node": "^22.15.17",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.32.0",
     "@typescript-eslint/parser": "^8.32.0",
     "eslint": "^9.26.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.0",
     "globals": "^16.1.0",
+    "nodemon": "^3.1.10",
     "prettier": "^3.5.3",
+    "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.32.0"
+    "typescript-eslint": "^8.32.0",
+    "webpack": "^5.99.8",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.5.0",
+    "uuid": "^11.1.0"
   }
 }
