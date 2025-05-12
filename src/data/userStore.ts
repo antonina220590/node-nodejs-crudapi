@@ -34,3 +34,12 @@ export const findUserByIdAsync = async (
     }, 10);
   });
 };
+
+export const saveUserAsync = async (newUser: User): Promise<User> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      users.push(newUser);
+      resolve({ ...newUser });
+    }, 10);
+  });
+};

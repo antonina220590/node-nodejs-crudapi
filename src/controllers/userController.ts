@@ -1,6 +1,6 @@
 import http from "http";
 import * as userService from "../services/userService.js";
-import { User } from "../types.js";
+import { User, NewUserInput } from "../types.js";
 import { validate as isValidUuid } from "uuid";
 
 export const getAllUsersController = async (
@@ -55,4 +55,102 @@ export const getUserByIdController = async (
     res.writeHead(500, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ message: "Internal server error" }));
   }
+};
+
+const handleCreateUserRequest = async (
+  body: string,
+  res: http.ServerResponse
+): Promise<void> => {
+  try {
+    const parsedData = JSON.parse(body) as unknown;
+    if (
+      typeof parsedData === "object" &&
+      parsedData !== null &&
+      "username" in parsedData &&
+      typeof (parsedData as { username: unknown }).username === "string" &&
+      "age" in parsedData &&
+      typeof (parsedData as { age: unknown }).age === "number" &&
+      "hobbies" in parsedData &&
+      Array.isArray((parsedData as { hobbies: unknown }).hobbies) &&
+      (parsedData as { hobbies: unknown[] }).hobbies.every(
+        (hobby: unknown) => typeof hobby === "string"
+      )
+    ) {
+      const { username, age, hobbies } = parsedData as {
+        username: string;
+        age: number;
+        hobbies: string[];
+      };
+
+      const newUserInput: NewUserInput = { username, age, hobbies };
+      const createdUser = await userService.addNewUser(newUserInput);
+
+      res.writeHead(201, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(createdUser));
+    } else {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message:
+            "Error 400: Request body doesn't have info (username, age, hobbies)",
+        })
+      );
+    }
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      console.error(
+        "JSON parsing error in handleCreateUserRequest:",
+        error.message
+      );
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: "Error 400: Incorrect JSON in request body",
+        })
+      );
+    } else if (error instanceof Error) {
+      console.error("Error in handleCreateUserRequest:", error.message);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: "Internal server error",
+          details: error.message,
+        })
+      );
+    } else {
+      console.error("Uncaught error in handleCreateUserRequest:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: "Internal server error",
+        })
+      );
+    }
+  }
+};
+
+export const createUserController = (
+  req: http.IncomingMessage,
+  res: http.ServerResponse
+): void => {
+  let body = "";
+  req.on("data", (chunk: Buffer) => {
+    body += chunk.toString();
+  });
+
+  req.on("error", (err) => {
+    console.error("Error:", err);
+    if (!res.writableEnded) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: "Internal server error",
+        })
+      );
+    }
+  });
+
+  req.on("end", () => {
+    void handleCreateUserRequest(body, res);
+  });
 };

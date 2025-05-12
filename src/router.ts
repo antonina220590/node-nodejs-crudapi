@@ -23,6 +23,8 @@ const router = async (req: Request, res: Response): Promise<void> => {
   } else if (method === "GET" && userByIdMatch) {
     const userId = userByIdMatch[1];
     await userController.getUserByIdController(req, res, userId);
+  } else if (method === "POST" && url === "/api/users") {
+    userController.createUserController(req, res);
   } else {
     res.writeHead(404, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ message: "Error 404" }));
