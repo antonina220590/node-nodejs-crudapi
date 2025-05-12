@@ -1,18 +1,12 @@
 import http from "http";
 import dotenv from "dotenv";
+import router from "./router.js";
 
 dotenv.config();
 const PORT = process.env.PORT || 3000;
 
 const server = http.createServer((req, res) => {
-  res.writeHead(200, { "Content-Type": "application/json" });
-  const responseBody = {
-    message: "Server works! Welcome to CRUD API",
-    currentUrl: req.url,
-    method: req.method,
-  };
-
-  res.end(JSON.stringify(responseBody));
+  router(req, res);
 });
 
 server.listen(PORT, () => {
