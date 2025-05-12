@@ -13,7 +13,7 @@ export const getAllUsers = async (): Promise<User[]> => {
 };
 
 export const fetchUserById = async (
-  userId: string
+  userId: string,
 ): Promise<User | undefined> => {
   return store.findUserByIdAsync(userId);
 };
@@ -24,7 +24,7 @@ export const addNewUser = async (userData: NewUserInput): Promise<User> => {
 
 export const modifyUser = async (
   userId: string,
-  userDataToUpdate: NewUserInput
+  userDataToUpdate: NewUserInput,
 ): Promise<User | null> => {
   return store.updateUserInStoreAsync(userId, userDataToUpdate);
 };

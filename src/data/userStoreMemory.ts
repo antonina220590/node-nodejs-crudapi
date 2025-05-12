@@ -8,12 +8,6 @@ let users: User[] = [
     age: 40,
     hobbies: ["hiking, horse riding"],
   },
-  {
-    id: uuidv4(),
-    username: "Nick",
-    age: 26,
-    hobbies: ["climbing, reading"],
-  },
 ];
 
 export const findAllUsersAsync = async (): Promise<User[]> => {
@@ -25,7 +19,7 @@ export const findAllUsersAsync = async (): Promise<User[]> => {
 };
 
 export const findUserByIdAsync = async (
-  id: string
+  id: string,
 ): Promise<User | undefined> => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -50,7 +44,7 @@ export const saveUserAsync = async (userData: NewUserInput): Promise<User> => {
 
 export const updateUserInStoreAsync = async (
   id: string,
-  updates: NewUserInput
+  updates: NewUserInput,
 ): Promise<User | null> => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -71,7 +65,7 @@ export const updateUserInStoreAsync = async (
 };
 
 export const deleteUserFromStoreAsync = async (
-  id: string
+  id: string,
 ): Promise<boolean> => {
   return new Promise((resolve) => {
     setTimeout(() => {

@@ -5,7 +5,7 @@ import { validate as isValidUuid } from "uuid";
 
 export const getAllUsersController = async (
   req: http.IncomingMessage,
-  res: http.ServerResponse
+  res: http.ServerResponse,
 ): Promise<void> => {
   try {
     const users: User[] = await userService.getAllUsers();
@@ -21,7 +21,7 @@ export const getAllUsersController = async (
 export const getUserByIdController = async (
   req: http.IncomingMessage,
   res: http.ServerResponse,
-  userId: string
+  userId: string,
 ): Promise<void> => {
   try {
     if (!isValidUuid(userId)) {
@@ -29,7 +29,7 @@ export const getUserByIdController = async (
       res.end(
         JSON.stringify({
           message: `Error 400: userId '${userId}' in not valid UUID`,
-        })
+        }),
       );
       return;
     }
@@ -44,13 +44,13 @@ export const getUserByIdController = async (
       res.end(
         JSON.stringify({
           message: `Error 404: User with ID '${userId}' is not found`,
-        })
+        }),
       );
     }
   } catch (error) {
     console.error(
       `Error in getUserByIdController using by ID ${userId}:`,
-      error
+      error,
     );
     res.writeHead(500, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ message: "Internal server error" }));
@@ -59,7 +59,7 @@ export const getUserByIdController = async (
 
 const handleCreateUserRequest = async (
   body: string,
-  res: http.ServerResponse
+  res: http.ServerResponse,
 ): Promise<void> => {
   try {
     const parsedData = JSON.parse(body) as unknown;
@@ -73,7 +73,7 @@ const handleCreateUserRequest = async (
       "hobbies" in parsedData &&
       Array.isArray((parsedData as { hobbies: unknown }).hobbies) &&
       (parsedData as { hobbies: unknown[] }).hobbies.every(
-        (hobby: unknown) => typeof hobby === "string"
+        (hobby: unknown) => typeof hobby === "string",
       )
     ) {
       const { username, age, hobbies } = parsedData as {
@@ -93,20 +93,20 @@ const handleCreateUserRequest = async (
         JSON.stringify({
           message:
             "Error 400: Request body doesn't have info (username, age, hobbies)",
-        })
+        }),
       );
     }
   } catch (error) {
     if (error instanceof SyntaxError) {
       console.error(
         "JSON parsing error in handleCreateUserRequest:",
-        error.message
+        error.message,
       );
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
           message: "Error 400: Incorrect JSON in request body",
-        })
+        }),
       );
     } else if (error instanceof Error) {
       console.error("Error in handleCreateUserRequest:", error.message);
@@ -115,7 +115,7 @@ const handleCreateUserRequest = async (
         JSON.stringify({
           message: "Internal server error",
           details: error.message,
-        })
+        }),
       );
     } else {
       console.error("Uncaught error in handleCreateUserRequest:", error);
@@ -123,7 +123,7 @@ const handleCreateUserRequest = async (
       res.end(
         JSON.stringify({
           message: "Internal server error",
-        })
+        }),
       );
     }
   }
@@ -131,7 +131,7 @@ const handleCreateUserRequest = async (
 
 export const createUserController = (
   req: http.IncomingMessage,
-  res: http.ServerResponse
+  res: http.ServerResponse,
 ): void => {
   let body = "";
   req.on("data", (chunk: Buffer) => {
@@ -145,7 +145,7 @@ export const createUserController = (
       res.end(
         JSON.stringify({
           message: "Internal server error",
-        })
+        }),
       );
     }
   });
@@ -158,7 +158,7 @@ export const createUserController = (
 const handleUpdateUserRequest = async (
   userId: string,
   body: string,
-  res: http.ServerResponse
+  res: http.ServerResponse,
 ): Promise<void> => {
   try {
     const parsedBody = JSON.parse(body) as unknown;
@@ -172,7 +172,7 @@ const handleUpdateUserRequest = async (
       "hobbies" in parsedBody &&
       Array.isArray((parsedBody as { hobbies: unknown }).hobbies) &&
       (parsedBody as { hobbies: unknown[] }).hobbies.every(
-        (hobby: unknown) => typeof hobby === "string"
+        (hobby: unknown) => typeof hobby === "string",
       )
     ) {
       const { username, age, hobbies } = parsedBody as {
@@ -184,7 +184,7 @@ const handleUpdateUserRequest = async (
 
       const updatedUser = await userService.modifyUser(
         userId,
-        userDataToUpdate
+        userDataToUpdate,
       );
 
       if (updatedUser) {
@@ -195,7 +195,7 @@ const handleUpdateUserRequest = async (
         res.end(
           JSON.stringify({
             message: `Error 404: User with ID '${userId}' not found`,
-          })
+          }),
         );
       }
     } else {
@@ -204,39 +204,39 @@ const handleUpdateUserRequest = async (
         JSON.stringify({
           message:
             "Error 400: Request body does not contain required fields (username, age, hobbies) or they have incorrect types",
-        })
+        }),
       );
     }
   } catch (error) {
     if (error instanceof SyntaxError) {
       console.error(
         "JSON parsing error in handleUpdateUserRequest:",
-        error.message
+        error.message,
       );
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(
-        JSON.stringify({ message: "Error 400: Invalid JSON in request body" })
+        JSON.stringify({ message: "Error 400: Invalid JSON in request body" }),
       );
     } else if (error instanceof Error) {
       console.error(
         `Error in handleUpdateUserRequest for user ID ${userId}:`,
-        error.message
+        error.message,
       );
       res.writeHead(500, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
           message: "Internal server error",
           details: error.message,
-        })
+        }),
       );
     } else {
       console.error(
         `Unknown error in handleUpdateUserRequest for user ID ${userId}:`,
-        error
+        error,
       );
       res.writeHead(500, { "Content-Type": "application/json" });
       res.end(
-        JSON.stringify({ message: "Internal server error (unknown error)" })
+        JSON.stringify({ message: "Internal server error (unknown error)" }),
       );
     }
   }
@@ -245,14 +245,14 @@ const handleUpdateUserRequest = async (
 export const updateUserController = (
   req: http.IncomingMessage,
   res: http.ServerResponse,
-  userId: string
+  userId: string,
 ): void => {
   if (!isValidUuid(userId)) {
     res.writeHead(400, { "Content-Type": "application/json" });
     res.end(
       JSON.stringify({
         message: `Error 400: userId '${userId}' is not a valid UUID`,
-      })
+      }),
     );
     return;
   }
@@ -269,7 +269,7 @@ export const updateUserController = (
       res.end(
         JSON.stringify({
           message: "Internal server error while reading request",
-        })
+        }),
       );
     }
   });
@@ -282,7 +282,7 @@ export const updateUserController = (
 export const deleteUserController = async (
   req: http.IncomingMessage,
   res: http.ServerResponse,
-  userId: string
+  userId: string,
 ): Promise<void> => {
   try {
     if (!isValidUuid(userId)) {
@@ -290,7 +290,7 @@ export const deleteUserController = async (
       res.end(
         JSON.stringify({
           message: `Error 400: User ID '${userId}' is not a valid UUID`,
-        })
+        }),
       );
       return;
     }
@@ -303,13 +303,13 @@ export const deleteUserController = async (
       res.end(
         JSON.stringify({
           message: `Error 404: User with ID '${userId}' not found`,
-        })
+        }),
       );
     }
   } catch (error) {
     console.error(
       `Error in deleteUserController for user ID ${userId}:`,
-      error
+      error,
     );
     if (!res.headersSent && !res.writableEnded) {
       if (error instanceof Error) {
@@ -318,12 +318,12 @@ export const deleteUserController = async (
           JSON.stringify({
             message: "Internal server error",
             details: error.message,
-          })
+          }),
         );
       } else {
         res.writeHead(500, { "Content-Type": "application/json" });
         res.end(
-          JSON.stringify({ message: "Internal server error (unknown error)" })
+          JSON.stringify({ message: "Internal server error (unknown error)" }),
         );
       }
     } else if (!res.writableEnded) {

@@ -20,7 +20,7 @@ process.on("message", (msg: unknown) => {
   ) {
     console.error(
       `Worker ${process.pid} received invalid message structure from primary:`,
-      msg
+      msg,
     );
     return;
   }
@@ -37,7 +37,7 @@ process.on("message", (msg: unknown) => {
 
     if (error) {
       console.error(
-        `Worker ${process.pid} received error for reqId ${requestId}: ${error}`
+        `Worker ${process.pid} received error for reqId ${requestId}: ${error}`,
       );
       promiseFuncs.reject(new Error(error));
     } else {
@@ -46,7 +46,7 @@ process.on("message", (msg: unknown) => {
     pendingRequests.delete(requestId);
   } else {
     console.warn(
-      `Worker ${process.pid} received message for unknown/timed-out reqId: ${requestId}`
+      `Worker ${process.pid} received message for unknown/timed-out reqId: ${requestId}`,
     );
   }
 });
@@ -54,14 +54,14 @@ process.on("message", (msg: unknown) => {
 function sendRequestToPrimary<T>(
   type: string,
   payload?: unknown,
-  timeoutMs = 5000
+  timeoutMs = 5000,
 ): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     if (!process.send) {
       return reject(
         new Error(
-          "IPC channel (process.send) is not available in this context."
-        )
+          "IPC channel (process.send) is not available in this context.",
+        ),
       );
     }
 
@@ -71,7 +71,7 @@ function sendRequestToPrimary<T>(
       if (pendingRequests.has(requestId)) {
         pendingRequests.delete(requestId);
         console.error(
-          `IPC request ${requestId} (${type}) timed out after ${timeoutMs}ms`
+          `IPC request ${requestId} (${type}) timed out after ${timeoutMs}ms`,
         );
         reject(new Error(`IPC Request timed out (${type})`));
       }
@@ -92,7 +92,7 @@ function sendRequestToPrimary<T>(
       }
       console.error(
         `Worker ${process.pid} failed to send IPC message ${type} (reqId: ${requestId}):`,
-        sendError
+        sendError,
       );
       if (sendError instanceof Error) {
         reject(sendError);
@@ -111,7 +111,7 @@ export const findAllUsersAsync = async (): Promise<User[]> => {
 };
 
 export const findUserByIdAsync = async (
-  id: string
+  id: string,
 ): Promise<User | undefined> => {
   const result = await sendRequestToPrimary<unknown>("getUserById", { id });
   if (
@@ -132,7 +132,7 @@ export const saveUserAsync = async (userData: NewUserInput): Promise<User> => {
 
 export const updateUserInStoreAsync = async (
   id: string,
-  updates: NewUserInput
+  updates: NewUserInput,
 ): Promise<User | null> => {
   const result = await sendRequestToPrimary<unknown>("updateUser", {
     id,
@@ -144,7 +144,7 @@ export const updateUserInStoreAsync = async (
 };
 
 export const deleteUserFromStoreAsync = async (
-  id: string
+  id: string,
 ): Promise<boolean> => {
   const result = await sendRequestToPrimary<unknown>("deleteUser", { id });
   if (typeof result !== "boolean")
