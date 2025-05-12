@@ -1,17 +1,33 @@
-// // src/index.ts
-// import http from "http"; // Пример импорта ES-модуля
+import http from "http";
+import dotenv from "dotenv";
 
-// console.log("Hello from index.ts!");
+dotenv.config();
+const PORT = process.env.PORT || 3000;
 
-// const server = http.createServer((req, res) => {
-//   res.writeHead(200, { "Content-Type": "text/plain" });
-//   res.end("Server is running!\n");
-// });
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "application/json" });
+  const responseBody = {
+    message: "Server works! Welcome to CRUD API",
+    currentUrl: req.url,
+    method: req.method,
+  };
 
-// const PORT = process.env.PORT || 4000; // Убедись, что dotenv настроен, если используешь .env
+  res.end(JSON.stringify(responseBody));
+});
 
-// server.listen(PORT, () => {
-//   console.log(`Server listening on port ${PORT}`);
-// });
+server.listen(PORT, () => {
+  console.log(`Server is running on the port ${PORT}`);
 
-console.log("Hello from simple ESM index.ts!");
+  if (process.env.NODE_ENV === "development") {
+    console.log(`Available here: http://localhost:${PORT}`);
+  }
+});
+
+server.on("error", (error) => {
+  if ((error as NodeJS.ErrnoException).code === "EADDRINUSE") {
+    console.error(`Ошибка: Порт ${PORT} уже используется.`);
+  } else {
+    console.error(`Ошибка сервера: ${error.message}`);
+  }
+  process.exit(1);
+});
