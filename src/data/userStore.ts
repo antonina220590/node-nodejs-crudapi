@@ -23,3 +23,14 @@ export const findAllUsersAsync = async (): Promise<User[]> => {
     }, 10);
   });
 };
+
+export const findUserByIdAsync = async (
+  id: string
+): Promise<User | undefined> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const user = users.find((u) => u.id === id);
+      resolve(user ? { ...user } : undefined);
+    }, 10);
+  });
+};
