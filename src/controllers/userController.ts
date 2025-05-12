@@ -162,8 +162,6 @@ const handleUpdateUserRequest = async (
 ): Promise<void> => {
   try {
     const parsedBody = JSON.parse(body) as unknown;
-
-    // Validate request body structure and types
     if (
       typeof parsedBody === "object" &&
       parsedBody !== null &&
@@ -182,7 +180,7 @@ const handleUpdateUserRequest = async (
         age: number;
         hobbies: string[];
       };
-      const userDataToUpdate: NewUserInput = { username, age, hobbies }; // Re-using NewUserInput type for update data
+      const userDataToUpdate: NewUserInput = { username, age, hobbies };
 
       const updatedUser = await userService.modifyUser(
         userId,
@@ -193,7 +191,6 @@ const handleUpdateUserRequest = async (
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(updatedUser));
       } else {
-        // If service returns null, it means user was not found by ID for update
         res.writeHead(404, { "Content-Type": "application/json" });
         res.end(
           JSON.stringify({
@@ -202,7 +199,6 @@ const handleUpdateUserRequest = async (
         );
       }
     } else {
-      // Body validation failed
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
@@ -213,7 +209,6 @@ const handleUpdateUserRequest = async (
     }
   } catch (error) {
     if (error instanceof SyntaxError) {
-      // JSON parsing error
       console.error(
         "JSON parsing error in handleUpdateUserRequest:",
         error.message
@@ -282,4 +277,57 @@ export const updateUserController = (
   req.on("end", () => {
     void handleUpdateUserRequest(userId, body, res);
   });
+};
+
+export const deleteUserController = async (
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  userId: string
+): Promise<void> => {
+  try {
+    if (!isValidUuid(userId)) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: `Error 400: User ID '${userId}' is not a valid UUID`,
+        })
+      );
+      return;
+    }
+    const wasDeleted = await userService.removeUserById(userId);
+    if (wasDeleted) {
+      res.writeHead(204);
+      res.end();
+    } else {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: `Error 404: User with ID '${userId}' not found`,
+        })
+      );
+    }
+  } catch (error) {
+    console.error(
+      `Error in deleteUserController for user ID ${userId}:`,
+      error
+    );
+    if (!res.headersSent && !res.writableEnded) {
+      if (error instanceof Error) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            message: "Internal server error",
+            details: error.message,
+          })
+        );
+      } else {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({ message: "Internal server error (unknown error)" })
+        );
+      }
+    } else if (!res.writableEnded) {
+      res.end();
+    }
+  }
 };

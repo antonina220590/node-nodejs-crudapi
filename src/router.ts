@@ -28,6 +28,9 @@ const router = async (req: Request, res: Response): Promise<void> => {
   } else if (method === "PUT" && userByIdMatch) {
     const userId = userByIdMatch[1];
     userController.updateUserController(req, res, userId);
+  } else if (method === "DELETE" && userByIdMatch) {
+    const userId = userByIdMatch[1];
+    await userController.deleteUserController(req, res, userId);
   } else {
     res.writeHead(404, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ message: "Error 404" }));

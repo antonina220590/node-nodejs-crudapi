@@ -1,38 +1,34 @@
-import * as userStore from "../data/userStore.js";
-import { NewUserInput, User } from "../types.js";
-import { v4 as uuidv4 } from "uuid";
+import type { User, NewUserInput } from "../types.js";
+import * as memoryStore from "../data/userStoreMemory.js";
+import * as ipcStore from "../data/userStore.js";
+import process from "node:process";
+
+const useIPC = !!process.send;
+const store = useIPC ? ipcStore : memoryStore;
+
+console.log(`UserService uses ${useIPC ? "IPC Store" : "Memory Store"}`);
 
 export const getAllUsers = async (): Promise<User[]> => {
-  const users = await userStore.findAllUsersAsync();
-  return users;
+  return store.findAllUsersAsync();
 };
 
 export const fetchUserById = async (
   userId: string
 ): Promise<User | undefined> => {
-  const user = await userStore.findUserByIdAsync(userId);
-  return user;
+  return store.findUserByIdAsync(userId);
 };
 
-export const addNewUser = async (userData: Omit<User, "id">): Promise<User> => {
-  const newUserId = uuidv4();
-
-  const newUser: User = {
-    id: newUserId,
-    ...userData,
-  };
-
-  const savedUser = await userStore.saveUserAsync(newUser);
-  return savedUser;
+export const addNewUser = async (userData: NewUserInput): Promise<User> => {
+  return store.saveUserAsync(userData);
 };
 
 export const modifyUser = async (
   userId: string,
   userDataToUpdate: NewUserInput
 ): Promise<User | null> => {
-  const updatedUser = await userStore.updateUserInStoreAsync(
-    userId,
-    userDataToUpdate
-  );
-  return updatedUser;
+  return store.updateUserInStoreAsync(userId, userDataToUpdate);
+};
+
+export const removeUserById = async (userId: string): Promise<boolean> => {
+  return store.deleteUserFromStoreAsync(userId);
 };
