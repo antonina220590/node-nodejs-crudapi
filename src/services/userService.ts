@@ -1,5 +1,5 @@
 import * as userStore from "../data/userStore.js";
-import { User } from "../types.js";
+import { NewUserInput, User } from "../types.js";
 import { v4 as uuidv4 } from "uuid";
 
 export const getAllUsers = async (): Promise<User[]> => {
@@ -24,4 +24,15 @@ export const addNewUser = async (userData: Omit<User, "id">): Promise<User> => {
 
   const savedUser = await userStore.saveUserAsync(newUser);
   return savedUser;
+};
+
+export const modifyUser = async (
+  userId: string,
+  userDataToUpdate: NewUserInput
+): Promise<User | null> => {
+  const updatedUser = await userStore.updateUserInStoreAsync(
+    userId,
+    userDataToUpdate
+  );
+  return updatedUser;
 };

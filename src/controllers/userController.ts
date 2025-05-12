@@ -154,3 +154,132 @@ export const createUserController = (
     void handleCreateUserRequest(body, res);
   });
 };
+
+const handleUpdateUserRequest = async (
+  userId: string,
+  body: string,
+  res: http.ServerResponse
+): Promise<void> => {
+  try {
+    const parsedBody = JSON.parse(body) as unknown;
+
+    // Validate request body structure and types
+    if (
+      typeof parsedBody === "object" &&
+      parsedBody !== null &&
+      "username" in parsedBody &&
+      typeof (parsedBody as { username: unknown }).username === "string" &&
+      "age" in parsedBody &&
+      typeof (parsedBody as { age: unknown }).age === "number" &&
+      "hobbies" in parsedBody &&
+      Array.isArray((parsedBody as { hobbies: unknown }).hobbies) &&
+      (parsedBody as { hobbies: unknown[] }).hobbies.every(
+        (hobby: unknown) => typeof hobby === "string"
+      )
+    ) {
+      const { username, age, hobbies } = parsedBody as {
+        username: string;
+        age: number;
+        hobbies: string[];
+      };
+      const userDataToUpdate: NewUserInput = { username, age, hobbies }; // Re-using NewUserInput type for update data
+
+      const updatedUser = await userService.modifyUser(
+        userId,
+        userDataToUpdate
+      );
+
+      if (updatedUser) {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(updatedUser));
+      } else {
+        // If service returns null, it means user was not found by ID for update
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            message: `Error 404: User with ID '${userId}' not found`,
+          })
+        );
+      }
+    } else {
+      // Body validation failed
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message:
+            "Error 400: Request body does not contain required fields (username, age, hobbies) or they have incorrect types",
+        })
+      );
+    }
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      // JSON parsing error
+      console.error(
+        "JSON parsing error in handleUpdateUserRequest:",
+        error.message
+      );
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({ message: "Error 400: Invalid JSON in request body" })
+      );
+    } else if (error instanceof Error) {
+      console.error(
+        `Error in handleUpdateUserRequest for user ID ${userId}:`,
+        error.message
+      );
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: "Internal server error",
+          details: error.message,
+        })
+      );
+    } else {
+      console.error(
+        `Unknown error in handleUpdateUserRequest for user ID ${userId}:`,
+        error
+      );
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({ message: "Internal server error (unknown error)" })
+      );
+    }
+  }
+};
+
+export const updateUserController = (
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  userId: string
+): void => {
+  if (!isValidUuid(userId)) {
+    res.writeHead(400, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        message: `Error 400: userId '${userId}' is not a valid UUID`,
+      })
+    );
+    return;
+  }
+
+  let body = "";
+  req.on("data", (chunk: Buffer) => {
+    body += chunk.toString();
+  });
+
+  req.on("error", (err) => {
+    console.error("Request stream error:", err);
+    if (!res.writableEnded) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: "Internal server error while reading request",
+        })
+      );
+    }
+  });
+
+  req.on("end", () => {
+    void handleUpdateUserRequest(userId, body, res);
+  });
+};
